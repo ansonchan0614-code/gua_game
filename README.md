@@ -2,7 +2,7 @@
 
 A 10-level first-person survival shooter set in the yellow Backrooms, built with Three.js in a single HTML file.
 
-**Play:** https://ansonchan0614-code.github.io/backrooms-survival/
+**Play:** https://ansonchan0614-code.github.io/gua_game/
 
 ## How to play
 - Survive until the timer hits zero.
