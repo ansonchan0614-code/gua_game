@@ -9,7 +9,8 @@ export class HUD {
       hit: $('hitmark'), damage: $('damage'), crosshair: $('crosshair'),
       ready: $('readyOverlay'), readyMsg: $('readyMsg'), readySub: $('readySub'),
       fps: $('fps'), ammo: $('ammo'), ammoMag: $('ammoMag'), ammoRes: $('ammoRes'), weapon: $('weaponName'),
-      reloadHint: $('reloadHint')
+      reloadHint: $('reloadHint'), scope: $('scope'), popups: $('popups'), killfeed: $('killfeed'),
+      slot1: $('slot1'), slot2: $('slot2'), slotG: $('slotG'), slots: document.querySelectorAll('.slot')
     };
     this._fpsAcc = 0; this._fpsN = 0;
   }
@@ -19,7 +20,7 @@ export class HUD {
     this.el.crosshair.classList.toggle('on', on);
   }
   fmt(sec) { const s = Math.max(0, Math.ceil(sec)), m = Math.floor(s / 60), r = s % 60; return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r; }
-  update({ hp, kills, timeLeft, level, levelName, weapon, ads, spread }) {
+  update({ hp, kills, timeLeft, level, levelName, weapon, ads, spread, scoped, slots, active, grenades }) {
     this.el.hp.textContent = Math.max(0, Math.round(hp));
     this.el.hpfill.style.width = Math.max(0, hp) + '%';
     this.el.hpfill.style.background = hp > 60 ? '#d8e04a' : hp > 30 ? '#ffcc44' : '#ff5555';
@@ -37,6 +38,38 @@ export class HUD {
     }
     this.el.crosshair.classList.toggle('spread', !!spread);
     this.el.crosshair.style.opacity = ads ? 0 : 1;
+    this.el.scope.classList.toggle('on', !!scoped);
+    if (slots) {
+      this.el.slot1.textContent = slots[0].name + (slots[0].ammo === 0 && slots[0].reserve === 0 ? ' ·' : '');
+      this.el.slot2.textContent = slots[1].name;
+      this.el.slotG.textContent = '✸ ×' + grenades;
+      this.el.slots.forEach(el => el.classList.toggle('active', el.dataset.slot === String(active)));
+    }
+  }
+  /** floating damage number at a projected screen point */
+  popup(x, y, text, head) {
+    const d = document.createElement('div');
+    d.className = 'pop' + (head ? ' head' : ''); d.textContent = text;
+    d.style.left = x + 'px'; d.style.top = y + 'px';
+    this.el.popups.appendChild(d);
+    setTimeout(() => d.remove(), 720);
+  }
+  feed(text, head) {
+    const d = document.createElement('div'); d.className = 'kf' + (head ? ' head' : ''); d.textContent = text;
+    this.el.killfeed.appendChild(d);
+    while (this.el.killfeed.children.length > 4) this.el.killfeed.firstChild.remove();
+    setTimeout(() => d.remove(), 3000);
+  }
+  /** enemy hp bars: list of {x,y,frac} (screen px) */
+  enemyBars(list) {
+    const have = this.el.popups.querySelectorAll('.ehp');
+    for (let i = 0; i < Math.max(have.length, list.length); i++) {
+      let el = have[i];
+      if (i >= list.length) { if (el) el.remove(); continue; }
+      if (!el) { el = document.createElement('div'); el.className = 'ehp'; el.innerHTML = '<i></i>'; this.el.popups.appendChild(el); }
+      el.style.left = list[i].x + 'px'; el.style.top = list[i].y + 'px';
+      el.firstChild.style.width = (list[i].frac * 100) + '%';
+    }
   }
   hitmark(kill) {
     const h = this.el.hit;

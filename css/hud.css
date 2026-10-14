@@ -178,3 +178,33 @@ kbd {
 }
 .btn:hover { background: rgba(255,230,150,0.15); transform: translateY(-2px); }
 .btn.primary { background: rgba(255,230,150,0.15); }
+
+/* ---------- scope ---------- */
+#scope { position: fixed; inset: 0; z-index: 4; pointer-events: none; display: none; }
+#scope.on { display: block; }
+#scope .ring {
+  position: absolute; left: 50%; top: 50%; width: 92vmin; height: 92vmin; margin: -46vmin 0 0 -46vmin;
+  border-radius: 50%; box-shadow: 0 0 0 200vmax #000, inset 0 0 40px 20px rgba(0,0,0,.9);
+}
+#scope .h, #scope .v { position: absolute; background: #000; }
+#scope .h { left: calc(50% - 46vmin); top: 50%; width: 92vmin; height: 2px; margin-top: -1px; }
+#scope .v { top: calc(50% - 46vmin); left: 50%; height: 92vmin; width: 2px; margin-left: -1px; }
+#scope .mil { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #ff3030; box-shadow: 0 0 6px #ff3030; }
+
+/* ---------- weapon slots ---------- */
+#slots { display: flex; gap: 6px; justify-content: flex-end; margin-top: 10px; }
+.slot { font-size: 10px; letter-spacing: 1px; padding: 4px 8px; border: 1px solid rgba(255,239,154,.3); border-radius: 3px; opacity: .55; background: rgba(0,0,0,.35); }
+.slot.active { opacity: 1; border-color: #ffef9a; background: rgba(255,230,150,.15); }
+.slot .k { display: inline-block; margin-right: 6px; padding: 0 4px; border: 1px solid rgba(255,255,255,.4); border-radius: 2px; }
+
+/* ---------- damage popups & kill feed ---------- */
+#popups { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+.pop { position: absolute; font-weight: bold; font-size: 15px; color: #ffe08a; text-shadow: 0 0 4px #000, 0 0 2px #000; transform: translate(-50%, -50%); animation: popup .7s ease-out forwards; }
+.pop.head { color: #ff5050; font-size: 18px; }
+@keyframes popup { 0% { opacity: 1; margin-top: 0; } 100% { opacity: 0; margin-top: -40px; } }
+#killfeed { position: fixed; top: 14px; right: 14px; z-index: 5; pointer-events: none; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.kf { font-size: 11px; letter-spacing: 2px; padding: 4px 10px; background: rgba(0,0,0,.5); border-left: 3px solid #ffef9a; animation: kf 3s forwards; }
+.kf.head { border-color: #ff5050; color: #ffb0b0; }
+@keyframes kf { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+.ehp { position: absolute; width: 44px; height: 4px; background: rgba(0,0,0,.6); border: 1px solid rgba(255,255,255,.4); transform: translate(-50%, -50%); }
+.ehp i { display: block; height: 100%; background: #ff4040; }

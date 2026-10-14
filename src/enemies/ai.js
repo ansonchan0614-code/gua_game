@@ -98,7 +98,19 @@ export function stepEnemy(e, ctx) {
 
   let stepX = 0, stepZ = 0;
   const stopDist = hasLOS ? 4.5 : 0.5;
+  const lowHp = e.maxHp && e.hp < e.maxHp * 0.3;
   if (b.escapeTimer > 0) { b.escapeTimer -= dt; stepX = b.escapeDirX; stepZ = b.escapeDirZ; }
+  else if (hasLOS && lowHp && dist < 9) {
+    // wounded: back off while still facing the player
+    stepX = -dxP / dist; stepZ = -dzP / dist;
+  } else if (hasLOS && dist < cfg.range && td <= stopDist + 2) {
+    // in a firefight: strafe side to side so they're harder to hit
+    b.strafeT = (b.strafeT || 0) + dt;
+    if (b.strafeT > 1.2 + Math.random() * 0.8) { b.strafeT = 0; b.strafeDir = b.strafeDir === 1 ? -1 : 1; }
+    const sd = b.strafeDir || (b.strafeDir = Math.random() < 0.5 ? 1 : -1);
+    stepX = -dzP / dist * sd * 0.8; stepZ = dxP / dist * sd * 0.8;
+    if (dist > stopDist + 1) { stepX += dxP / dist * 0.5; stepZ += dzP / dist * 0.5; }
+  }
   else if (td > stopDist && td > 0.01) { stepX = tdx / td; stepZ = tdz / td; }
 
   // simple separation so enemies don't stack

@@ -22,7 +22,7 @@ export class ViewModel {
     this.adsTarget = 0;
     this.kick = 0;           // recoil kick 0..1
     this.swayX = 0; this.swayY = 0;
-    this.reloadT = -1; this.swapT = -1;
+    this.reloadT = -1; this.swapT = -1; this.throwT = -1;
     this.bob = 0;
     this.lowered = 0;        // 1 = weapon lowered (sprint / swap)
     this.arms = this.buildArms(mats);
@@ -65,6 +65,9 @@ export class ViewModel {
   get swapping() { return this.swapT >= 0 && this.swapT < 0.45; }
 
   fire() { this.kick = 1; }
+  throwAnim() { this.throwT = 0; }
+  get throwing() { return this.throwT >= 0; }
+  get scoped() { return !!(this.weapon && this.weapon.stats.scope) && this.ads > 0.85; }
 
   update(dt, player, lookDx, lookDy) {
     const w = this.weapon;
@@ -122,6 +125,28 @@ export class ViewModel {
       this.pivot.position.y -= Math.sin(t * Math.PI) * 0.05;
       if (t >= 1) { this.reloadT = -1; if (w.mag) { w.mag.position.y = -0.11; w.mag.rotation.x = 0.08; } this.lHand.position.y = w.hands?.left?.[1] ?? -0.075; }
     }
+    // bolt-action cycle: lift, pull, push, drop
+    if (w.model.bolt) {
+      const b = w.model.bolt, bt = w.boltT;
+      if (bt >= 0) {
+        const t = bt / w.stats.bolt;
+        const lift = t < 0.2 ? t / 0.2 : t > 0.8 ? (1 - t) / 0.2 : 1;
+        const pull = t < 0.25 ? 0 : t < 0.45 ? (t - 0.25) / 0.2 : t < 0.6 ? 1 : t < 0.8 ? 1 - (t - 0.6) / 0.2 : 0;
+        b.rotation.z = -lift * 1.2;
+        b.position.z = 0.06 + pull * 0.09;
+        this.pivot.rotation.x += lift * 0.08;
+        this.pivot.position.x += lift * 0.02;
+      } else { b.rotation.z = 0; b.position.z = 0.06; }
+    }
+    // throw animation: gun dips right, hand comes up
+    if (this.throwT >= 0) {
+      this.throwT += dt;
+      const t = Math.min(1, this.throwT / 0.7);
+      const dip = Math.sin(t * Math.PI);
+      this.pivot.position.x += dip * 0.12; this.pivot.position.y -= dip * 0.2;
+      this.pivot.rotation.z -= dip * 0.5; this.pivot.rotation.x += dip * 0.3;
+      if (this.throwT > 0.7) this.throwT = -1;
+    }
     // swap animation: raise from below
     if (this.swapT >= 0) {
       this.swapT += dt;
@@ -131,6 +156,8 @@ export class ViewModel {
       this.pivot.rotation.x += (1 - e) * 0.8;
       if (this.swapT > 1) this.swapT = -1;
     }
+    // scoped: hide the rifle so the full-screen scope overlay reads cleanly
+    this.root.visible = !this.scoped;
     // mirror the world camera
     this.vmCamera.position.copy(this.camera.position);
     this.vmCamera.quaternion.copy(this.camera.quaternion);
